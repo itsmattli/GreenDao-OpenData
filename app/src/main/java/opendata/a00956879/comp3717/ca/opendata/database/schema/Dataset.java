@@ -28,6 +28,10 @@ public class Dataset {
     public Dataset() {
     }
 
+    public Dataset(Long id) {
+        this.id = id;
+    }
+
     @Generated
     public Dataset(Long id, String name, String description, long category_ref) {
         this.id = id;
@@ -48,7 +52,6 @@ public class Dataset {
     public String getName() {
         return name;
     }
-
 
     /** Not-null value; ensure this value is available before it is saved to the database. */
     public void setName(@NotNull String name) {

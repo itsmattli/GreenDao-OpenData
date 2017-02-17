@@ -1,20 +1,24 @@
 package opendata.a00956879.comp3717.ca.opendata;
 
 import android.app.ListActivity;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-
-import java.util.List;
-
+import android.widget.SimpleCursorAdapter;
 import opendata.a00956879.comp3717.ca.opendata.database.DatabaseHelper;
 import opendata.a00956879.comp3717.ca.opendata.database.schema.Category;
+import opendata.a00956879.comp3717.ca.opendata.database.schema.CategoryDao;
 
 public class CategoryView extends ListActivity {
 
     public static final String NO_DESC = "No Description Available";
+    public static final String CATEGORY_PATH = "/category";
     public static final long BUSINESSES = 1;
     public static final long CITY_GOVERNMENT = 2;
     public static final long COMMUNITY = 3;
@@ -28,46 +32,54 @@ public class CategoryView extends ListActivity {
     public static final long TRANSPORTATION = 11;
     public static final long UTILITIES = 12;
     public static final long CONTACTS_ADDRESSES = 13;
-
-
+    private SimpleCursorAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        List<Category> categoryList;
-
+        final LoaderManager manager;
         super.onCreate(savedInstanceState);
-        setTitle("Dataset Categories");
         setContentView(R.layout.activity_category_view);
         init();
-        categoryList = generateCategoriesList();
-        ListView list = (ListView) findViewById(android.R.id.list);
-        ArrayAdapter<Category> adapter = new ArrayAdapter<Category>(this, android.R.layout.simple_list_item_1, categoryList);
-        list.setAdapter(adapter);
+        adapter = new SimpleCursorAdapter(getBaseContext(),
+                android.R.layout.simple_list_item_1,
+                null,
+                new String[]
+                        {
+                                CategoryDao.Properties.Name.columnName,
+                        },
+                new int[]
+                        {
+                                android.R.id.text1,
+                        },
+                0);
+
+        setListAdapter(adapter);
+        manager = getLoaderManager();
+        manager.initLoader(0, null, new CategoryLoaderCallbacks());
     }
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
-        Category item = (Category) l.getItemAtPosition(position);
+        Cursor item = (Cursor) l.getItemAtPosition(position);
+        Category category = parseCursor(item);
         Intent i = new Intent(getApplicationContext(), CategoryDatasetView.class);
-        i.putExtra("category_ref", item.getCategory_id());
+        i.putExtra("category_ref", category.getCategory_id());
         startActivity(i);
     }
 
-    private List<Category> generateCategoriesList() {
-        final List<Category> categoryList;
+    private Category parseCursor(final Cursor cursor) {
         final DatabaseHelper helper;
 
         helper = DatabaseHelper.getInstance(this);
         helper.openDatabaseForReading(this);
-        categoryList = helper.getCategories();
-        helper.close();
-        return categoryList;
+        return helper.getCategoryFromCursor(cursor);
     }
 
     private void init() {
         initCategories();
         initDatasets();
     }
+
     private void initCategories() {
         final DatabaseHelper helper;
         final long           numCategories;
@@ -493,5 +505,34 @@ public class CategoryView extends ListActivity {
                     ", and Misc Warning Signs.", TRANSPORTATION);
         }
         helper.close();
+    }
+
+    private class CategoryLoaderCallbacks
+            implements LoaderManager.LoaderCallbacks<Cursor> {
+        @Override
+        public Loader<Cursor> onCreateLoader(final int    id,
+                                             final Bundle args)
+        {
+            final Uri uri;
+            final CursorLoader loader;
+
+            uri    = Uri.parse(DataContentProvider.CONTENT_URI.toString() + CATEGORY_PATH);
+            loader = new CursorLoader(CategoryView.this, uri, null, null, null, null);
+
+            return (loader);
+        }
+
+        @Override
+        public void onLoadFinished(final Loader<Cursor> loader,
+                                   final Cursor data)
+        {
+            adapter.swapCursor(data);
+        }
+
+        @Override
+        public void onLoaderReset(final Loader<Cursor> loader)
+        {
+            adapter.swapCursor(null);
+        }
     }
 }

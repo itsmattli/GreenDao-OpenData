@@ -22,8 +22,9 @@ public class CategoryDao extends AbstractDao<Category, Long> {
      * Can be used for QueryBuilder and for referencing column names.
      */
     public static class Properties {
-        public final static Property Category_id = new Property(0, long.class, "category_id", true, "CATEGORY_ID");
-        public final static Property Name = new Property(1, String.class, "name", false, "NAME");
+        public final static Property Id = new Property(0, Long.class, "id", true, "_id");
+        public final static Property Category_id = new Property(1, long.class, "category_id", false, "CATEGORY_ID");
+        public final static Property Name = new Property(2, String.class, "name", false, "NAME");
     }
 
     private DaoSession daoSession;
@@ -42,8 +43,9 @@ public class CategoryDao extends AbstractDao<Category, Long> {
     public static void createTable(Database db, boolean ifNotExists) {
         String constraint = ifNotExists? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "\"CATEGORY\" (" + //
-                "\"CATEGORY_ID\" INTEGER PRIMARY KEY NOT NULL ," + // 0: category_id
-                "\"NAME\" TEXT NOT NULL );"); // 1: name
+                "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
+                "\"CATEGORY_ID\" INTEGER NOT NULL ," + // 1: category_id
+                "\"NAME\" TEXT NOT NULL );"); // 2: name
     }
 
     /** Drops the underlying database table. */
@@ -55,15 +57,25 @@ public class CategoryDao extends AbstractDao<Category, Long> {
     @Override
     protected final void bindValues(DatabaseStatement stmt, Category entity) {
         stmt.clearBindings();
-        stmt.bindLong(1, entity.getCategory_id());
-        stmt.bindString(2, entity.getName());
+ 
+        Long id = entity.getId();
+        if (id != null) {
+            stmt.bindLong(1, id);
+        }
+        stmt.bindLong(2, entity.getCategory_id());
+        stmt.bindString(3, entity.getName());
     }
 
     @Override
     protected final void bindValues(SQLiteStatement stmt, Category entity) {
         stmt.clearBindings();
-        stmt.bindLong(1, entity.getCategory_id());
-        stmt.bindString(2, entity.getName());
+ 
+        Long id = entity.getId();
+        if (id != null) {
+            stmt.bindLong(1, id);
+        }
+        stmt.bindLong(2, entity.getCategory_id());
+        stmt.bindString(3, entity.getName());
     }
 
     @Override
@@ -74,34 +86,36 @@ public class CategoryDao extends AbstractDao<Category, Long> {
 
     @Override
     public Long readKey(Cursor cursor, int offset) {
-        return cursor.getLong(offset + 0);
+        return cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0);
     }    
 
     @Override
     public Category readEntity(Cursor cursor, int offset) {
         Category entity = new Category( //
-            cursor.getLong(offset + 0), // category_id
-            cursor.getString(offset + 1) // name
+            cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0), // id
+            cursor.getLong(offset + 1), // category_id
+            cursor.getString(offset + 2) // name
         );
         return entity;
     }
      
     @Override
     public void readEntity(Cursor cursor, Category entity, int offset) {
-        entity.setCategory_id(cursor.getLong(offset + 0));
-        entity.setName(cursor.getString(offset + 1));
+        entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
+        entity.setCategory_id(cursor.getLong(offset + 1));
+        entity.setName(cursor.getString(offset + 2));
      }
     
     @Override
     protected final Long updateKeyAfterInsert(Category entity, long rowId) {
-        entity.setCategory_id(rowId);
+        entity.setId(rowId);
         return rowId;
     }
     
     @Override
     public Long getKey(Category entity) {
         if(entity != null) {
-            return entity.getCategory_id();
+            return entity.getId();
         } else {
             return null;
         }
@@ -109,7 +123,7 @@ public class CategoryDao extends AbstractDao<Category, Long> {
 
     @Override
     public boolean hasKey(Category entity) {
-        throw new UnsupportedOperationException("Unsupported for entities with a non-null key");
+        return entity.getId() != null;
     }
 
     @Override

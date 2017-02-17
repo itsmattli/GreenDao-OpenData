@@ -1,6 +1,7 @@
 package opendata.a00956879.comp3717.ca.opendata.database;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import org.greenrobot.greendao.database.Database;
 import java.util.List;
@@ -92,35 +93,67 @@ public class DatabaseHelper
         return (category);
     }
 
-    public List<Dataset> getDatasetByCategoryRef(final long category_ref) {
-        final List<Dataset> datasets;
+    public Cursor getCategoryCursor() {
+        final Cursor cursor;
 
-        datasets = datasetDao.queryBuilder().where(DatasetDao.Properties.Category_ref.eq(category_ref)).list();
+        String orderBy = CategoryDao.Properties.Name.columnName + " ASC";
+        cursor = db.query(categoryDao.getTablename(),
+                categoryDao.getAllColumns(),
+                null,
+                null,
+                null,
+                null,
+                orderBy);
 
-        return datasets;
+        return (cursor);
     }
 
-    public Category getCategoryByCategoryId(final long category_id) {
-        final List<Category> categories;
-        final Category       category;
+    public Cursor getCategoryDatasetCursor(String selection) {
+        final Cursor cursor;
 
-        categories = categoryDao.queryBuilder().where(CategoryDao.Properties.Category_id.eq(category_id)).limit(1).list();
+        String orderBy = DatasetDao.Properties.Name.columnName + " ASC";
+        cursor = db.query(datasetDao.getTablename(),
+                datasetDao.getAllColumns(),
+                selection,
+                null,
+                null,
+                null,
+                orderBy);
 
-        if(categories.isEmpty()) {
-            category = null;
-        } else {
-            category = categories.get(0);
-        }
+        return (cursor);
+    }
+
+    public Cursor getDatasetCursor(String selection) {
+        final Cursor cursor;
+
+        String orderBy = CategoryDao.Properties.Name.columnName + " ASC";
+        cursor = db.query(datasetDao.getTablename(),
+                datasetDao.getAllColumns(),
+                selection,
+                null,
+                null,
+                null,
+                orderBy);
+
+        return (cursor);
+    }
+
+    public Dataset getDatasetFromCursor(Cursor cursor) {
+        final Dataset dataset;
+
+        dataset = datasetDao.readEntity(cursor,
+                0);
+
+        return dataset;
+    }
+
+    public Category getCategoryFromCursor(final Cursor cursor) {
+        final Category category;
+
+        category = categoryDao.readEntity(cursor,
+                0);
 
         return (category);
-    }
-
-    public List<Category> getCategories() {
-        return (categoryDao.loadAll());
-    }
-
-    public List<Dataset> getDatasets() {
-        return (datasetDao.loadAll());
     }
 
     public static void upgrade(final Database db,

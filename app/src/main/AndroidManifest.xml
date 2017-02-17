@@ -18,6 +18,11 @@
         <activity android:name=".CategoryView" />
         <activity android:name=".CategoryDatasetView" />
         <activity android:name=".DatasetView"></activity>
+        <provider
+            android:authorities="opendata.a00956879.comp3717.ca.opendata"
+            android:name=".DataContentProvider"
+            android:enabled="true"
+            android:exported="false"/>
     </application>
 
 </manifest>

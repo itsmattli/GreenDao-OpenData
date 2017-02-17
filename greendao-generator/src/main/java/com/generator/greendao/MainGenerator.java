@@ -30,7 +30,8 @@ public class MainGenerator
 
     private static Entity addCategories(final Schema schema) {
         Entity categories = schema.addEntity("Category");
-        categories.addLongProperty("category_id").primaryKey().notNull();
+        categories.addIdProperty().primaryKey().autoincrement();
+        categories.addLongProperty("category_id").notNull();
         categories.addStringProperty("name").notNull();
 
         return categories;

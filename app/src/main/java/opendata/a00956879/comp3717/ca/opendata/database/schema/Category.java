@@ -17,7 +17,8 @@ import org.greenrobot.greendao.DaoException;
 @Entity(active = true)
 public class Category {
 
-    @Id
+    @Id(autoincrement = true)
+    private Long id;
     private long category_id;
 
     @NotNull
@@ -32,7 +33,7 @@ public class Category {
     private transient CategoryDao myDao;
 
     @ToMany(joinProperties = {
-        @JoinProperty(name = "category_id", referencedName = "category_ref")
+        @JoinProperty(name = "id", referencedName = "category_ref")
     })
     private List<Dataset> datasetList;
 
@@ -43,8 +44,19 @@ public class Category {
     public Category() {
     }
 
+    public Category(Long id) {
+        this.id = id;
+    }
+
     @Generated
+    public Category(Long id, long category_id, String name) {
+        this.id = id;
+        this.category_id = category_id;
+        this.name = name;
+    }
+
     public Category(long category_id, String name) {
+        this.id = null;
         this.category_id = category_id;
         this.name = name;
     }
@@ -54,6 +66,14 @@ public class Category {
     public void __setDaoSession(DaoSession daoSession) {
         this.daoSession = daoSession;
         myDao = daoSession != null ? daoSession.getCategoryDao() : null;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public long getCategory_id() {
@@ -80,7 +100,7 @@ public class Category {
         if (datasetList == null) {
             __throwIfDetached();
             DatasetDao targetDao = daoSession.getDatasetDao();
-            List<Dataset> datasetListNew = targetDao._queryCategory_DatasetList(category_id);
+            List<Dataset> datasetListNew = targetDao._queryCategory_DatasetList(id);
             synchronized (this) {
                 if(datasetList == null) {
                     datasetList = datasetListNew;
