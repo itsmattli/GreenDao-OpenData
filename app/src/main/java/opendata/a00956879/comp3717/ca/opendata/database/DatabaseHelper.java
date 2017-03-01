@@ -4,7 +4,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import org.greenrobot.greendao.database.Database;
-import java.util.List;
 import opendata.a00956879.comp3717.ca.opendata.database.schema.Category;
 import opendata.a00956879.comp3717.ca.opendata.database.schema.CategoryDao;
 import opendata.a00956879.comp3717.ca.opendata.database.schema.DaoMaster;
